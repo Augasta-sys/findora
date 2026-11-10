@@ -1,8 +1,8 @@
 
 import { useEffect, useState } from 'react'
-import axios from 'axios'
 import { Bell, CheckCheck, RefreshCw } from 'lucide-react'
 import { useAuth } from '../../context/auth-context'
+import api from '../../services/api'
 
 type Notification = {
   id: string
@@ -12,8 +12,6 @@ type Notification = {
   read?: boolean
   createdAt?: string
 }
-
-const API_URL = 'http://localhost:5000'
 
 export default function NotificationsPage() {
   const { user } = useAuth()
@@ -26,9 +24,7 @@ export default function NotificationsPage() {
     setError('')
 
     try {
-      const response = await axios.get<Notification[]>(
-        `${API_URL}/notifications`,
-      )
+      const response = await api.get<Notification[]>('/notifications')
 
       const userNotifications = response.data.filter(
         (notification) =>
@@ -38,7 +34,7 @@ export default function NotificationsPage() {
       setNotifications(userNotifications)
     } catch {
       setError(
-        'Unable to load notifications. Check that JSON Server is running.',
+        'Unable to load notifications. Check your API connection.',
       )
     } finally {
       setLoading(false)
@@ -50,9 +46,7 @@ export default function NotificationsPage() {
 
     const fetchNotifications = async () => {
       try {
-        const response = await axios.get<Notification[]>(
-          `${API_URL}/notifications`,
-        )
+        const response = await api.get<Notification[]>('/notifications')
 
         const userNotifications = response.data.filter(
           (notification) =>
@@ -66,7 +60,7 @@ export default function NotificationsPage() {
       } catch {
         if (active) {
           setError(
-            'Unable to load notifications. Check that JSON Server is running.',
+            'Unable to load notifications. Check your API connection.',
           )
         }
       } finally {
@@ -89,8 +83,8 @@ export default function NotificationsPage() {
     if (notification.read) return
 
     try {
-      await axios.patch(
-        `${API_URL}/notifications/${notification.id}`,
+      await api.patch(
+        `/notifications/${notification.id}`,
         { read: true },
       )
 
@@ -116,8 +110,8 @@ export default function NotificationsPage() {
     try {
       await Promise.all(
         unread.map((notification) =>
-          axios.patch(
-            `${API_URL}/notifications/${notification.id}`,
+          api.patch(
+            `/notifications/${notification.id}`,
             { read: true },
           ),
         ),

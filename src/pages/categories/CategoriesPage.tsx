@@ -1,15 +1,13 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
-import axios from 'axios'
 import { Search, Plus, Pencil, Trash2, X, Tags } from 'lucide-react'
+import api from '../../services/api'
 
 type Category = {
   id: string
   name: string
   description?: string
 }
-
-const API_URL = 'http://localhost:5000'
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([])
@@ -27,9 +25,7 @@ export default function CategoriesPage() {
 
     const fetchCategories = async () => {
       try {
-        const response = await axios.get<Category[]>(
-          `${API_URL}/categories`,
-        )
+        const response = await api.get<Category[]>('/categories')
 
         if (active) {
           setCategories(response.data)
@@ -38,7 +34,7 @@ export default function CategoriesPage() {
       } catch {
         if (active) {
           setError(
-            'Unable to load categories. Check that JSON Server is running.',
+            'Unable to load categories. Check your API connection.',
           )
         }
       } finally {
@@ -116,8 +112,8 @@ export default function CategoriesPage() {
 
     try {
       if (editingCategory) {
-        const response = await axios.patch<Category>(
-          `${API_URL}/categories/${editingCategory.id}`,
+        const response = await api.patch<Category>(
+          `/categories/${editingCategory.id}`,
           payload,
         )
 
@@ -127,8 +123,8 @@ export default function CategoriesPage() {
           ),
         )
       } else {
-        const response = await axios.post<Category>(
-          `${API_URL}/categories`,
+        const response = await api.post<Category>(
+          '/categories',
           payload,
         )
 
@@ -152,9 +148,7 @@ export default function CategoriesPage() {
     if (!confirmed) return
 
     try {
-      await axios.delete(
-        `${API_URL}/categories/${category.id}`,
-      )
+      await api.delete(`/categories/${category.id}`)
 
       setCategories((current) =>
         current.filter((item) => item.id !== category.id),

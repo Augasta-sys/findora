@@ -1,7 +1,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
-import axios from 'axios'
 import { Search, Activity, RefreshCw } from 'lucide-react'
+import api from '../../services/api'
 
 type ActivityLog = {
   id: string
@@ -12,8 +12,6 @@ type ActivityLog = {
   createdAt?: string
   timestamp?: string
 }
-
-const API_URL = 'http://localhost:5000'
 
 export default function ActivityLogsPage() {
   const [logs, setLogs] = useState<ActivityLog[]>([])
@@ -27,13 +25,11 @@ export default function ActivityLogsPage() {
     setError('')
 
     try {
-      const response = await axios.get<ActivityLog[]>(
-        `${API_URL}/activityLogs`,
-      )
+      const response = await api.get<ActivityLog[]>('/activityLogs')
       setLogs(response.data)
     } catch {
       setError(
-        'Unable to load activity logs. Check that JSON Server is running.',
+        'Unable to load activity logs. Check your API connection.',
       )
     } finally {
       setLoading(false)
@@ -45,9 +41,7 @@ export default function ActivityLogsPage() {
 
     const fetchLogs = async () => {
       try {
-        const response = await axios.get<ActivityLog[]>(
-          `${API_URL}/activityLogs`,
-        )
+        const response = await api.get<ActivityLog[]>('/activityLogs')
 
         if (active) {
           setLogs(response.data)
@@ -56,7 +50,7 @@ export default function ActivityLogsPage() {
       } catch {
         if (active) {
           setError(
-            'Unable to load activity logs. Check that JSON Server is running.',
+            'Unable to load activity logs. Check your API connection.',
           )
         }
       } finally {

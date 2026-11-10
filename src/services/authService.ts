@@ -1,3 +1,4 @@
+
 import api from './api'
 
 export type UserRole = 'admin' | 'staff' | 'user'
@@ -17,12 +18,14 @@ export interface RegisterInput {
 }
 
 export async function login(email: string, password: string) {
-  const response = await api.get<AppUser[]>('/users', {
-    params: { email: email.toLowerCase().trim() },
-  })
+  const normalizedEmail = email.toLowerCase().trim()
+
+  const response = await api.get<AppUser[]>('/users')
 
   const user = response.data.find(
-    (item) => item.password === password,
+    (item) =>
+      item.email.toLowerCase().trim() === normalizedEmail &&
+      item.password === password,
   )
 
   if (!user) {
@@ -35,19 +38,26 @@ export async function login(email: string, password: string) {
 export async function register(input: RegisterInput) {
   const email = input.email.toLowerCase().trim()
 
-  const existing = await api.get<AppUser[]>('/users', {
-    params: { email },
-  })
+  const response = await api.get<AppUser[]>('/users')
 
-  if (existing.data.length > 0) {
+  const existing = response.data.find(
+    (item) => item.email.toLowerCase().trim() === email,
+  )
+
+  if (existing) {
     throw new Error('An account with this email already exists')
   }
 
-  const response = await api.post<AppUser>('/users', {
+  const newUser = {
     ...input,
     email,
-    role: 'user',
-  })
+    role: 'user' as UserRole,
+  }
 
-  return response.data
+  const createResponse = await api.post<AppUser>(
+    '/users',
+    newUser,
+  )
+
+  return createResponse.data
 }

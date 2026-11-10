@@ -1,3 +1,4 @@
+
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/auth-context'
@@ -9,6 +10,7 @@ function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   const [errors, setErrors] = useState({
     email: '',
@@ -16,6 +18,7 @@ function LoginPage() {
   })
 
   const [successMessage, setSuccessMessage] = useState('')
+
   const { signIn } = useAuth()
   const navigate = useNavigate()
 
@@ -27,11 +30,11 @@ function LoginPage() {
 
     if (!email.trim()) {
       newErrors.email = 'Email address is required'
-  } else if (
-  !/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i.test(email.trim())
-) {
-  newErrors.email = 'Please enter a valid email address'
-}
+    } else if (
+      !/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i.test(email.trim())
+    ) {
+      newErrors.email = 'Please enter a valid email address'
+    }
 
     if (!password) {
       newErrors.password = 'Password is required'
@@ -40,25 +43,37 @@ function LoginPage() {
     }
 
     setErrors(newErrors)
+
     return !newErrors.email && !newErrors.password
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
+    setSuccessMessage('')
+
     if (!validateForm()) return
 
     try {
+      setIsLoading(true)
+
       await signIn(email.trim().toLowerCase(), password)
-      navigate('/dashboard')
+
+      setSuccessMessage('Login successful! Redirecting...')
+
+      navigate('/dashboard', { replace: true })
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'Unable to sign in'
+        error instanceof Error
+          ? error.message
+          : 'Unable to sign in. Please try again.'
 
       setErrors((prev) => ({
         ...prev,
         password: message,
       }))
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -100,15 +115,21 @@ function LoginPage() {
                 : 'border-slate-200 focus-within:border-teal-500 dark:border-slate-700'
             }`}
           >
-            <Mail size={15} className="shrink-0 text-slate-400" />
+            <Mail
+              size={15}
+              className="shrink-0 text-slate-400"
+            />
 
             <input
               id="email"
               type="email"
               value={email}
-              onChange={(e) => {
-                setEmail(e.target.value.toLowerCase())
-                setErrors((prev) => ({ ...prev, email: '' }))
+              onChange={(event) => {
+                setEmail(event.target.value.toLowerCase())
+                setErrors((prev) => ({
+                  ...prev,
+                  email: '',
+                }))
                 setSuccessMessage('')
               }}
               placeholder="name@example.com"
@@ -134,6 +155,12 @@ function LoginPage() {
               </div>
             )}
           </div>
+
+          {errors.email && (
+            <p className="mt-1 text-[10px] text-red-500">
+              {errors.email}
+            </p>
+          )}
         </div>
 
         {/* Password */}
@@ -159,7 +186,10 @@ function LoginPage() {
             value={password}
             onChange={(value) => {
               setPassword(value)
-              setErrors((prev) => ({ ...prev, password: '' }))
+              setErrors((prev) => ({
+                ...prev,
+                password: '',
+              }))
               setSuccessMessage('')
             }}
             placeholder="Enter your password"
@@ -172,7 +202,9 @@ function LoginPage() {
           <input
             type="checkbox"
             checked={rememberMe}
-            onChange={(e) => setRememberMe(e.target.checked)}
+            onChange={(event) =>
+              setRememberMe(event.target.checked)
+            }
             className="h-3.5 w-3.5 accent-teal-600"
           />
 
@@ -191,14 +223,17 @@ function LoginPage() {
         {/* Sign In */}
         <button
           type="submit"
-          className="group flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-[#0F9D8A] text-xs font-semibold text-white shadow-md shadow-teal-500/20 transition-all hover:-translate-y-0.5 hover:bg-[#0D8A79] hover:shadow-lg active:translate-y-0"
+          disabled={isLoading}
+          className="group flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-[#0F9D8A] text-xs font-semibold text-white shadow-md shadow-teal-500/20 transition-all hover:-translate-y-0.5 hover:bg-[#0D8A79] hover:shadow-lg active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Sign In
+          {isLoading ? 'Signing in...' : 'Sign In'}
 
-          <ArrowRight
-            size={15}
-            className="transition-transform group-hover:translate-x-1"
-          />
+          {!isLoading && (
+            <ArrowRight
+              size={15}
+              className="transition-transform group-hover:translate-x-1"
+            />
+          )}
         </button>
       </form>
 

@@ -1,43 +1,56 @@
-import { useState } from 'react';
-import axios from 'axios';
-import { useAuth } from '../../context/auth-context';
 
-const API_URL = 'http://localhost:5000';
+import { useState } from 'react'
+import { useAuth } from '../../context/auth-context'
+import api from '../../services/api'
 
-type ReportType = 'lost' | 'found';
+type ReportType = 'lost' | 'found'
 
 export default function UserReportsPage() {
-  const { user } = useAuth();
+  const { user } = useAuth()
 
-  const [reportType, setReportType] = useState<ReportType>('lost');
+  const [reportType, setReportType] = useState<ReportType>('lost')
+
   const [form, setForm] = useState({
     title: '',
     categoryId: '',
     description: '',
     location: '',
     date: '',
-  });
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
-  const [saving, setSaving] = useState(false);
+  })
+
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
+  const [saving, setSaving] = useState(false)
 
   const updateField = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
-    setForm({ ...form, [event.target.name]: event.target.value });
-  };
+    setForm({ ...form, [event.target.name]: event.target.value })
+  }
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setMessage('');
-    setError('');
+  const handleSubmit = async (
+    event: React.FormEvent<HTMLFormElement>,
+  ) => {
+    event.preventDefault()
+    setMessage('')
+    setError('')
 
-    if (!form.title.trim() || !form.description.trim() || !form.location.trim()) {
-      setError('Please complete all required fields.');
-      return;
+    if (
+      !form.title.trim() ||
+      !form.description.trim() ||
+      !form.location.trim()
+    ) {
+      setError('Please complete all required fields.')
+      return
     }
 
-    const endpoint = reportType === 'lost' ? '/lostReports' : '/foundItems';
+    if (!user?.id) {
+      setError('Please sign in before submitting a report.')
+      return
+    }
+
+    const endpoint =
+      reportType === 'lost' ? '/lostReports' : '/foundItems'
 
     const payload =
       reportType === 'lost'
@@ -48,7 +61,7 @@ export default function UserReportsPage() {
             description: form.description.trim(),
             location: form.location.trim(),
             dateLost: form.date,
-            reportedBy: user?.id,
+            reportedBy: user.id,
             status: 'Pending',
           }
         : {
@@ -58,19 +71,20 @@ export default function UserReportsPage() {
             description: form.description.trim(),
             location: form.location.trim(),
             dateFound: form.date,
-            reportedBy: user?.id,
+            reportedBy: user.id,
             status: 'Available',
-          };
+          }
 
     try {
-      setSaving(true);
-      await axios.post(`${API_URL}${endpoint}`, payload);
+      setSaving(true)
+
+      await api.post(endpoint, payload)
 
       setMessage(
         reportType === 'lost'
           ? 'Lost item report submitted.'
-          : 'Found item report submitted.'
-      );
+          : 'Found item report submitted.',
+      )
 
       setForm({
         title: '',
@@ -78,13 +92,15 @@ export default function UserReportsPage() {
         description: '',
         location: '',
         date: '',
-      });
+      })
     } catch {
-      setError('Could not submit the report. Please check that JSON Server is running.');
+      setError(
+        'Could not submit the report. Please check your backend connection and try again.',
+      )
     } finally {
-      setSaving(false);
+      setSaving(false)
     }
-  };
+  }
 
   return (
     <div className="w-full max-w-4xl space-y-6">
@@ -92,6 +108,7 @@ export default function UserReportsPage() {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           Report an Item
         </h1>
+
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           Submit details about an item you lost or found.
         </p>
@@ -101,9 +118,9 @@ export default function UserReportsPage() {
         <button
           type="button"
           onClick={() => {
-            setReportType('lost');
-            setMessage('');
-            setError('');
+            setReportType('lost')
+            setMessage('')
+            setError('')
           }}
           className={`rounded-lg px-4 py-2 text-sm font-medium ${
             reportType === 'lost'
@@ -117,9 +134,9 @@ export default function UserReportsPage() {
         <button
           type="button"
           onClick={() => {
-            setReportType('found');
-            setMessage('');
-            setError('');
+            setReportType('found')
+            setMessage('')
+            setError('')
           }}
           className={`rounded-lg px-4 py-2 text-sm font-medium ${
             reportType === 'found'
@@ -136,13 +153,16 @@ export default function UserReportsPage() {
         className="space-y-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-900 sm:p-6"
       >
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-          {reportType === 'lost' ? 'Lost item details' : 'Found item details'}
+          {reportType === 'lost'
+            ? 'Lost item details'
+            : 'Found item details'}
         </h2>
 
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
             Item name *
           </label>
+
           <input
             name="title"
             value={form.title}
@@ -157,6 +177,7 @@ export default function UserReportsPage() {
           <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
             Category ID
           </label>
+
           <input
             name="categoryId"
             value={form.categoryId}
@@ -170,6 +191,7 @@ export default function UserReportsPage() {
           <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
             Description *
           </label>
+
           <textarea
             name="description"
             value={form.description}
@@ -183,8 +205,12 @@ export default function UserReportsPage() {
 
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-            {reportType === 'lost' ? 'Where did you lose it?' : 'Where did you find it?'} *
+            {reportType === 'lost'
+              ? 'Where did you lose it?'
+              : 'Where did you find it?'}{' '}
+            *
           </label>
+
           <input
             name="location"
             value={form.location}
@@ -199,6 +225,7 @@ export default function UserReportsPage() {
           <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
             Date
           </label>
+
           <input
             type="date"
             name="date"
@@ -208,8 +235,13 @@ export default function UserReportsPage() {
           />
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        {message && <p className="text-sm text-green-600">{message}</p>}
+        {error && (
+          <p className="text-sm text-red-600">{error}</p>
+        )}
+
+        {message && (
+          <p className="text-sm text-green-600">{message}</p>
+        )}
 
         <button
           type="submit"
@@ -220,5 +252,5 @@ export default function UserReportsPage() {
         </button>
       </form>
     </div>
-  );
+  )
 }

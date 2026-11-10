@@ -1,7 +1,8 @@
+
 import { useEffect, useMemo, useState } from 'react'
-import axios from 'axios'
 import { Search, Eye, X, Users, ShieldCheck } from 'lucide-react'
 import { useAuth } from '../../context/auth-context'
+import api from '../../services/api'
 
 type AppUser = {
   id: string
@@ -12,10 +13,9 @@ type AppUser = {
   createdAt?: string
 }
 
-const API_URL = 'http://localhost:5000'
-
 export default function UsersPage() {
   const { user } = useAuth()
+
   const [users, setUsers] = useState<AppUser[]>([])
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('All')
@@ -25,31 +25,52 @@ export default function UsersPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
+    let active = true
+
     const loadUsers = async () => {
       try {
         setError('')
-        const response = await axios.get<AppUser[]>(`${API_URL}/users`)
-        setUsers(response.data)
+
+        const response = await api.get<AppUser[]>('/users')
+
+        if (active) {
+          setUsers(response.data)
+        }
       } catch {
-        setError('Unable to load users. Check that JSON Server is running.')
+        if (active) {
+          setError(
+            'Unable to load users. Check your backend connection.',
+          )
+        }
       } finally {
-        setLoading(false)
+        if (active) {
+          setLoading(false)
+        }
       }
     }
 
     void loadUsers()
+
+    return () => {
+      active = false
+    }
   }, [])
 
   const filteredUsers = useMemo(() => {
     return users.filter((item) => {
-      const matchesSearch =
-        item.name.toLowerCase().includes(search.toLowerCase()) ||
-        item.email.toLowerCase().includes(search.toLowerCase()) ||
-        item.id.toLowerCase().includes(search.toLowerCase())
+      const searchTerm = search.toLowerCase()
 
-      const matchesRole = roleFilter === 'All' || item.role === roleFilter
+      const matchesSearch =
+        item.name.toLowerCase().includes(searchTerm) ||
+        item.email.toLowerCase().includes(searchTerm) ||
+        item.id.toLowerCase().includes(searchTerm)
+
+      const matchesRole =
+        roleFilter === 'All' || item.role === roleFilter
+
       const matchesStatus =
-        statusFilter === 'All' || (item.status ?? 'Active') === statusFilter
+        statusFilter === 'All' ||
+        (item.status ?? 'Active') === statusFilter
 
       return matchesSearch && matchesRole && matchesStatus
     })
@@ -65,6 +86,7 @@ export default function UsersPage() {
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
             Users Management
           </h1>
+
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             View and manage Findora users.
           </p>
@@ -72,6 +94,7 @@ export default function UsersPage() {
 
         <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
           <Users size={18} className="text-indigo-500" />
+
           <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
             {users.length} users
           </span>
@@ -85,6 +108,7 @@ export default function UsersPage() {
               size={18}
               className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
             />
+
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
@@ -118,7 +142,9 @@ export default function UsersPage() {
 
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
         {loading ? (
-          <p className="p-6 text-sm text-slate-500">Loading users…</p>
+          <p className="p-6 text-sm text-slate-500">
+            Loading users…
+          </p>
         ) : error ? (
           <p className="p-6 text-sm text-rose-500">{error}</p>
         ) : filteredUsers.length === 0 ? (
@@ -134,31 +160,44 @@ export default function UsersPage() {
                   <th className="px-5 py-4 font-semibold">Role</th>
                   <th className="px-5 py-4 font-semibold">Status</th>
                   <th className="px-5 py-4 font-semibold">Joined</th>
-                  <th className="px-5 py-4 text-right font-semibold">Action</th>
+                  <th className="px-5 py-4 text-right font-semibold">
+                    Action
+                  </th>
                 </tr>
               </thead>
+
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {filteredUsers.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60">
+                  <tr
+                    key={item.id}
+                    className="hover:bg-slate-50 dark:hover:bg-slate-800/60"
+                  >
                     <td className="px-5 py-4">
                       <p className="font-medium text-slate-900 dark:text-white">
                         {item.name}
                       </p>
-                      <p className="mt-1 text-xs text-slate-500">{item.email}</p>
+
+                      <p className="mt-1 text-xs text-slate-500">
+                        {item.email}
+                      </p>
                     </td>
+
                     <td className="px-5 py-4 text-slate-600 dark:text-slate-300">
                       {roleLabel(item.role)}
                     </td>
+
                     <td className="px-5 py-4">
                       <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
                         {item.status ?? 'Active'}
                       </span>
                     </td>
+
                     <td className="px-5 py-4 text-slate-500 dark:text-slate-400">
                       {item.createdAt
                         ? new Date(item.createdAt).toLocaleDateString()
                         : '—'}
                     </td>
+
                     <td className="px-5 py-4 text-right">
                       <button
                         type="button"
@@ -197,10 +236,12 @@ export default function UsersPage() {
                 >
                   User Details
                 </h2>
+
                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                   Account information
                 </p>
               </div>
+
               <button
                 type="button"
                 aria-label="Close user details"
@@ -218,30 +259,35 @@ export default function UsersPage() {
                   {selectedUser.name}
                 </p>
               </div>
+
               <div>
                 <p className="text-xs text-slate-500">Email</p>
                 <p className="mt-1 break-all font-medium text-slate-900 dark:text-white">
                   {selectedUser.email}
                 </p>
               </div>
+
               <div>
                 <p className="text-xs text-slate-500">Role</p>
                 <p className="mt-1 font-medium text-slate-900 dark:text-white">
                   {roleLabel(selectedUser.role)}
                 </p>
               </div>
+
               <div>
                 <p className="text-xs text-slate-500">Status</p>
                 <p className="mt-1 font-medium text-slate-900 dark:text-white">
                   {selectedUser.status ?? 'Active'}
                 </p>
               </div>
+
               <div>
                 <p className="text-xs text-slate-500">User ID</p>
                 <p className="mt-1 break-all font-medium text-slate-900 dark:text-white">
                   {selectedUser.id}
                 </p>
               </div>
+
               {user?.id === selectedUser.id && (
                 <p className="flex items-center gap-2 text-xs text-indigo-600 dark:text-indigo-400">
                   <ShieldCheck size={14} />

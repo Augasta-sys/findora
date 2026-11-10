@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react'
 import {
   Bar,
@@ -13,6 +14,7 @@ import {
   YAxis,
 } from 'recharts'
 import { useAuth } from '../../context/auth-context'
+import api from '../../services/api'
 
 type RecordItem = {
   id: string | number
@@ -75,34 +77,27 @@ export default function DashboardPage() {
         setError('')
 
         const resources = Object.keys(emptyData) as (keyof DashboardData)[]
+
         const responses = await Promise.all(
           resources.map((resource) =>
-            fetch(`http://localhost:5000/${resource}`),
+            api.get<RecordItem[]>(`/${resource}`),
           ),
-        )
-
-        if (responses.some((response) => !response.ok)) {
-          throw new Error('Could not load dashboard data.')
-        }
-
-        const results = await Promise.all(
-          responses.map((response) => response.json()),
         )
 
         if (!cancelled) {
           setData({
-            users: results[0],
-            lostReports: results[1],
-            foundItems: results[2],
-            claims: results[3],
-            verifications: results[4],
-            handovers: results[5],
+            users: responses[0].data,
+            lostReports: responses[1].data,
+            foundItems: responses[2].data,
+            claims: responses[3].data,
+            verifications: responses[4].data,
+            handovers: responses[5].data,
           })
         }
       } catch {
         if (!cancelled) {
           setError(
-            'Could not load dashboard data. Check that JSON Server is running on port 5000.',
+            'Could not load dashboard data. Please check your API connection.',
           )
         }
       } finally {
@@ -110,7 +105,7 @@ export default function DashboardPage() {
       }
     }
 
-    loadDashboard()
+    void loadDashboard()
 
     return () => {
       cancelled = true
@@ -219,7 +214,9 @@ export default function DashboardPage() {
               <article
                 key={card.label}
                 className="rounded-2xl border border-slate-200 border-l-4 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-slate-800 dark:bg-slate-900"
-                style={{ borderLeftColor: chartColors[index % chartColors.length] }}
+                style={{
+                  borderLeftColor: chartColors[index % chartColors.length],
+                }}
               >
                 <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
                   {card.label}
@@ -233,7 +230,10 @@ export default function DashboardPage() {
 
           {/* Charts */}
           <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
-            <ChartCard title="Lost and Found Items" subtitle="Report volume comparison">
+            <ChartCard
+              title="Lost and Found Items"
+              subtitle="Report volume comparison"
+            >
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -245,10 +245,7 @@ export default function DashboardPage() {
                     paddingAngle={4}
                   >
                     {itemTypeData.map((entry, index) => (
-                      <Cell
-                        key={entry.name}
-                        fill={chartColors[index]}
-                      />
+                      <Cell key={entry.name} fill={chartColors[index]} />
                     ))}
                   </Pie>
                   <Tooltip contentStyle={tooltipStyle} />
@@ -257,10 +254,19 @@ export default function DashboardPage() {
               </ResponsiveContainer>
             </ChartCard>
 
-            <ChartCard title="Recovery Workflow" subtitle="Current records by stage">
+            <ChartCard
+              title="Recovery Workflow"
+              subtitle="Current records by stage"
+            >
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={workflowData} margin={{ top: 10, right: 10, left: -18, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" />
+                <BarChart
+                  data={workflowData}
+                  margin={{ top: 10, right: 10, left: -18, bottom: 5 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="var(--chart-grid)"
+                  />
                   <XAxis
                     dataKey="name"
                     tick={{ fill: 'var(--chart-text)', fontSize: 11 }}
@@ -274,15 +280,29 @@ export default function DashboardPage() {
                     tick={{ fill: 'var(--chart-text)', fontSize: 11 }}
                   />
                   <Tooltip contentStyle={tooltipStyle} />
-                  <Bar dataKey="count" name="Records" fill="#0d9488" radius={[6, 6, 0, 0]} />
+                  <Bar
+                    dataKey="count"
+                    name="Records"
+                    fill="#0d9488"
+                    radius={[6, 6, 0, 0]}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </ChartCard>
 
-            <ChartCard title="Lost Report Status" subtitle="Count of reports by status">
+            <ChartCard
+              title="Lost Report Status"
+              subtitle="Count of reports by status"
+            >
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={lostStatusData} margin={{ top: 10, right: 10, left: -18, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" />
+                <BarChart
+                  data={lostStatusData}
+                  margin={{ top: 10, right: 10, left: -18, bottom: 5 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="var(--chart-grid)"
+                  />
                   <XAxis
                     dataKey="status"
                     tick={{ fill: 'var(--chart-text)', fontSize: 11 }}
@@ -292,12 +312,20 @@ export default function DashboardPage() {
                     tick={{ fill: 'var(--chart-text)', fontSize: 11 }}
                   />
                   <Tooltip contentStyle={tooltipStyle} />
-                  <Bar dataKey="count" name="Reports" fill="#6366f1" radius={[6, 6, 0, 0]} />
+                  <Bar
+                    dataKey="count"
+                    name="Reports"
+                    fill="#6366f1"
+                    radius={[6, 6, 0, 0]}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </ChartCard>
 
-            <ChartCard title="Found Item Status" subtitle="Count of found items by status">
+            <ChartCard
+              title="Found Item Status"
+              subtitle="Count of found items by status"
+            >
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -346,9 +374,14 @@ function ChartCard({
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-5">
       <div className="mb-4">
-        <h2 className="font-semibold text-slate-900 dark:text-white">{title}</h2>
-        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{subtitle}</p>
+        <h2 className="font-semibold text-slate-900 dark:text-white">
+          {title}
+        </h2>
+        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          {subtitle}
+        </p>
       </div>
+
       <div
         className="h-64 w-full"
         style={

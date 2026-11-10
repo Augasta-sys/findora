@@ -1,6 +1,5 @@
 
 import { useEffect, useMemo, useState } from 'react'
-import axios from 'axios'
 import {
   BarChart3,
   PackageSearch,
@@ -8,6 +7,7 @@ import {
   ClipboardList,
   RefreshCw,
 } from 'lucide-react'
+import api from '../../services/api'
 
 type LostReport = {
   id: string
@@ -24,8 +24,6 @@ type Claim = {
   status?: string
 }
 
-const API_URL = 'http://localhost:5000'
-
 export default function ReportsPage() {
   const [lostReports, setLostReports] = useState<LostReport[]>([])
   const [foundItems, setFoundItems] = useState<FoundItem[]>([])
@@ -40,9 +38,9 @@ export default function ReportsPage() {
     try {
       const [lostResponse, foundResponse, claimsResponse] =
         await Promise.all([
-          axios.get<LostReport[]>(`${API_URL}/lostReports`),
-          axios.get<FoundItem[]>(`${API_URL}/foundItems`),
-          axios.get<Claim[]>(`${API_URL}/claims`),
+          api.get<LostReport[]>('/lostReports'),
+          api.get<FoundItem[]>('/foundItems'),
+          api.get<Claim[]>('/claims'),
         ])
 
       setLostReports(lostResponse.data)
@@ -50,7 +48,7 @@ export default function ReportsPage() {
       setClaims(claimsResponse.data)
     } catch {
       setError(
-        'Unable to load report data. Check that JSON Server is running.',
+        'Unable to load report data. Check your backend connection.',
       )
     } finally {
       setLoading(false)
@@ -64,9 +62,9 @@ export default function ReportsPage() {
       try {
         const [lostResponse, foundResponse, claimsResponse] =
           await Promise.all([
-            axios.get<LostReport[]>(`${API_URL}/lostReports`),
-            axios.get<FoundItem[]>(`${API_URL}/foundItems`),
-            axios.get<Claim[]>(`${API_URL}/claims`),
+            api.get<LostReport[]>('/lostReports'),
+            api.get<FoundItem[]>('/foundItems'),
+            api.get<Claim[]>('/claims'),
           ])
 
         if (active) {
@@ -78,11 +76,13 @@ export default function ReportsPage() {
       } catch {
         if (active) {
           setError(
-            'Unable to load report data. Check that JSON Server is running.',
+            'Unable to load report data. Check your backend connection.',
           )
         }
       } finally {
-        if (active) setLoading(false)
+        if (active) {
+          setLoading(false)
+        }
       }
     }
 
@@ -104,8 +104,9 @@ export default function ReportsPage() {
     claims.forEach((claim) => {
       const status = (claim.status ?? '').toLowerCase()
 
-      if (status === 'pending') counts.pending += 1
-      else if (status === 'approved' || status === 'verified') {
+      if (status === 'pending') {
+        counts.pending += 1
+      } else if (status === 'approved' || status === 'verified') {
         counts.approved += 1
       } else if (status === 'rejected') {
         counts.rejected += 1
@@ -200,6 +201,7 @@ export default function ReportsPage() {
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
             Reports & Analytics
           </h1>
+
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Overview of lost reports, found items, and claims.
           </p>
@@ -226,7 +228,9 @@ export default function ReportsPage() {
       )}
 
       {loading ? (
-        <p className="text-sm text-slate-500">Loading analytics…</p>
+        <p className="text-sm text-slate-500">
+          Loading analytics…
+        </p>
       ) : (
         <>
           <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -243,6 +247,7 @@ export default function ReportsPage() {
                       <p className="text-sm text-slate-500 dark:text-slate-400">
                         {card.label}
                       </p>
+
                       <p className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
                         {card.value}
                       </p>
