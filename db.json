@@ -1,0 +1,88 @@
+{
+  "users": [
+    {
+      "id": "user-admin-1",
+      "name": "Findora Admin",
+      "email": "admin@findora.test",
+      "password": "admin123",
+      "role": "admin"
+    },
+    {
+      "id": "user-staff-1",
+      "name": "Findora Staff",
+      "email": "staff@findora.test",
+      "password": "staff123",
+      "role": "staff"
+    },
+    {
+      "id": "user-1",
+      "name": "Anand Kumar",
+      "email": "anand@test.com",
+      "password": "asdfgh",
+      "role": "user"
+    }
+  ],
+  "categories": [
+    {
+      "id": "cat-1",
+      "name": "Electronics"
+    },
+    {
+      "id": "cat-2",
+      "name": "Wallets and Bags"
+    },
+    {
+      "id": "cat-3",
+      "name": "Keys"
+    },
+    {
+      "id": "cat-4",
+      "name": "Documents"
+    },
+    {
+      "id": "cat-5",
+      "name": "Other"
+    }
+  ],
+  "lostReports": [
+    {
+      "id": "lost-1",
+      "userId": "user-1",
+      "title": "Black wallet",
+      "categoryId": "cat-2",
+      "description": "Black wallet with cards",
+      "location": "Library",
+      "dateLost": "2026-10-28",
+      "status": "Open"
+    },
+    {
+      "id": "O6Jom4GXNwA",
+      "title": "Pink Pouch",
+      "categoryId": "Bags",
+      "description": "I lost it when I went to the park.",
+      "location": "In the park",
+      "dateLost": "2026-11-03",
+      "reportedBy": "user-1",
+      "status": "Pending"
+    }
+  ],
+  "foundItems": [
+    {
+      "id": "found-1",
+      "reportedBy": "user-staff-1",
+      "title": "Blue water bottle",
+      "categoryId": "cat-5",
+      "description": "Blue bottle found near the entrance",
+      "location": "Main entrance",
+      "dateFound": "2026-10-29",
+      "status": "Available"
+    }
+  ],
+  "matchSuggestions": [],
+  "claims": [],
+  "verifications": [],
+  "handovers": [],
+  "notifications": [],
+  "activityLogs": [],
+  "$schema": "./node_modules/json-server/schema.json"
+}

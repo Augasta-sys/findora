@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  font-family: Inter, system-ui, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  background: #f8fafc;
+  color: #14213d;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* Hide scrollbars when required */
+
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Theme colors */
+
+:root {
+  color-scheme: light;
+}
+
+.dark {
+  color-scheme: dark;
+}
+
+.dark body {
+  background: #0b1220;
+  color: #f8fafc;
+}
+
+/* Selection */
+
+::selection {
+  background: #0f9d8a;
+  color: white;
+}
+
+/* Theme colors */
+:root {
+  color-scheme: light;
+  --chart-grid-color: #e2e8f0;
+  --chart-text-color: #64748b;
+  --chart-tooltip-color: #ffffff;
+}
+
+.dark {
+  color-scheme: dark;
+  --chart-grid-color: #334155;
+  --chart-text-color: #cbd5e1;
+  --chart-tooltip-color: #0f172a;
+}
